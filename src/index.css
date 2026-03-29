@@ -1,0 +1,23 @@
+:root {
+  /* === COLOR PALETTE === */
+
+  /* Background colors */
+  --bg-page:        #2d0c13;    /* rich mahogany */
+  --bg-header:      #561d20;    /* night bordeaux */
+  --bg-card:        #783a40;    /* wine plum */
+
+  /* Text colors */
+  --text-primary:   #e3b68e;    /* sandy clay */
+  --text-heading:   #e3b68e;    /* sandy clay */
+  --text-muted:     #d4a57d;    /* sandy clay (softened) */
+
+  /* Accent / Brand */
+  --accent:         #783a40;    /* wine plum */
+  --accent-hover:   #6c4c2d;    /* brown bark */
+
+  /* Borders & Misc */
+  --border:         #6c4c2d;    /* brown bark */
+  --img-border:     #e3b68e;    /* sandy clay */
+  --img-bg:         #561d20;    /* night bordeaux */
+
+}
