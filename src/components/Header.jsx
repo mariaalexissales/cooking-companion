@@ -13,40 +13,26 @@ export default function Header() {
           component="img"
           src={companionImg}
           alt="Cooking Companion Logo"
-          sx={{
+          sx={(theme) => ({
             height: 128,
             width: 120,
-            border: "4px solid #e3b68e",
+            border: `4px solid ${theme.palette.text.primary}`,
             borderRadius: "50%",
-            backgroundColor: "#561d20",
-          }}
+            backgroundColor: theme.palette.background.paper,
+          })}
         />
         <Box sx={{ ml: 2 }}>
-          <Typography
-            variant="h1"
-            sx={{
-              fontFamily: '"Roboto", sans-serif',
-              fontSize: "48px",
-              color: "#e3b68e",
-            }}
-          >
+          <Typography variant="h1">
             Cooking Companion
           </Typography>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontFamily: '"Mea Culpa", cursive',
-              fontSize: "32px",
-              color: "#d4a57d",
-            }}
-          >
+          <Typography variant="subtitle1">
             I am the cooking companion that never leaves your side!
           </Typography>
         </Box>
-        <Box sx={{ flexGrow: 1 }} />
+        {/* <Box sx={{ flexGrow: 1 }} />
         <Button color="inherit">Home</Button>
         <Button color="inherit">Recipes</Button>
-        <Button color="inherit">Favorites</Button>
+        <Button color="inherit">Favorites</Button> */}
       </Toolbar>
     </AppBar>
   );

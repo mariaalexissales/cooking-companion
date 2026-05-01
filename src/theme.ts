@@ -15,6 +15,16 @@ const theme = createTheme({
       secondary: '#d4a57d',
     },
   },
+  typography: {
+    h1: {
+      fontSize: '48px',
+    },
+    subtitle1: {
+      fontFamily: '"Mea Culpa", cursive',
+      fontSize: '32px',
+      color: '#d4a57d',
+    },
+  },
   components: {
     MuiAppBar: {
       styleOverrides: {
