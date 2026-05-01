@@ -32,6 +32,12 @@ export default function Pantry() {
                     {items.map((item, index) => (
                         <ListItem key={index}>
                             <ListItemText primary={item} />
+                            <Button 
+                                variant="outlined" 
+                                color="primary" 
+                                onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}>
+                                Remove
+                            </Button>
                         </ListItem>
                     ))}
                 </List>
