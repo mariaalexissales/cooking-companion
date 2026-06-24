@@ -1,6 +1,6 @@
 import './App.css'
-import Header from './components/Header.jsx'
-import Pantry from './components/Pantry.jsx'
+import Header from './components/Header'
+import Pantry from './components/Pantry'
 
 
 function App() {

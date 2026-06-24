@@ -29,10 +29,10 @@ export default function Header() {
             I am the cooking companion that never leaves your side!
           </Typography>
         </Box>
-        {/* <Box sx={{ flexGrow: 1 }} />
+        <Box sx={{ flexGrow: 1 }} />
         <Button color="inherit">Home</Button>
         <Button color="inherit">Recipes</Button>
-        <Button color="inherit">Favorites</Button> */}
+        <Button color="inherit">Favorites</Button>
       </Toolbar>
     </AppBar>
   );
