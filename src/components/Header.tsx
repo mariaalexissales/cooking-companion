@@ -4,6 +4,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import { Stack } from "@mui/material";
 
 export default function Header() {
   return (
@@ -30,9 +31,11 @@ export default function Header() {
           </Typography>
         </Box>
         <Box sx={{ flexGrow: 1 }} />
-        <Button color="inherit">Home</Button>
-        <Button color="inherit">Recipes</Button>
-        <Button color="inherit">Favorites</Button>
+        <Stack direction="row" spacing={2}>
+          <Button color="inherit">Home</Button>
+          <Button color="inherit">Recipes</Button>
+          <Button color="inherit">Favorites</Button>
+        </Stack>
       </Toolbar>
     </AppBar>
   );
