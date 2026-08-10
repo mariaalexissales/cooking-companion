@@ -20,11 +20,12 @@ import {
   DeleteOutlineOutlined as DeleteOutlineIcon,
 } from "@mui/icons-material";
 import { useLiveQuery } from "dexie-react-hooks";
+import PageHeading from "../components/PageHeading";
 import { db } from "../db";
 
 const UNITS = ["pcs", "g", "kg", "ml", "l", "oz", "lb", "cup", "tbsp", "tsp"];
 
-export default function Pantry() {
+export default function PantryPage() {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState<number>(1);
   const [unit, setUnit] = useState("pcs");
@@ -64,6 +65,10 @@ export default function Pantry() {
 
   return (
     <>
+      <PageHeading
+        title="Pantry"
+        subtitle="Cupboard staples. Favourites stay pinned to the top."
+      />
       <Box
         sx={{
           display: "flex",

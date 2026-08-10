@@ -1,77 +1,84 @@
-import { useState } from "react";
-import companionImg from "../assets/image.png";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-import { Stack, useMediaQuery, useTheme } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-
-const NAV_ITEMS = ["Home", "Recipes", "Favorites"];
+import {
+  AppBar,
+  Box,
+  Button,
+  Stack,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+import companionImg from '../assets/image.png';
+import { NAV_ITEMS } from './navItems';
 
 export default function Header() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { pathname } = useLocation();
 
   return (
-    <AppBar position="static">
+    <AppBar position="sticky">
       <Toolbar sx={{ gap: 1 }}>
         <Box
           component="img"
           src={companionImg}
-          alt="Cooking Companion Logo"
-          sx={(theme) => ({
-            height: { xs: 64, sm: 128 },
-            width: { xs: 60, sm: 120 },
-            border: `4px solid ${theme.palette.text.primary}`,
-            borderRadius: "50%",
+          alt=""
+          sx={{
+            height: { xs: 48, sm: 88 },
+            width: { xs: 48, sm: 88 },
+            objectFit: 'cover',
+            border: `3px solid ${theme.palette.text.primary}`,
+            borderRadius: '50%',
             backgroundColor: theme.palette.background.paper,
-          })}
+            flexShrink: 0,
+          }}
         />
+
         <Box sx={{ ml: { xs: 1, sm: 2 }, minWidth: 0 }}>
-          <Typography variant="h1" sx={{ fontSize: { xs: "22px", sm: "48px" } }}>
+          <Typography
+            variant="h1"
+            component={RouterLink}
+            to="/"
+            sx={{
+              color: 'inherit',
+              textDecoration: 'none',
+              fontSize: { xs: '22px', sm: '48px' },
+            }}
+          >
             Cooking Companion
           </Typography>
-          <Typography variant="subtitle1" sx={{ fontSize: { xs: "15px", sm: "32px" } }}>
+          <Typography variant="subtitle1" sx={{ fontSize: { xs: '15px', sm: '32px' } }} noWrap>
             I am the cooking companion that never leaves your side!
           </Typography>
         </Box>
+
         <Box sx={{ flexGrow: 1 }} />
-        {isMobile ? (
-          <IconButton
-            color="inherit"
-            aria-label="Open navigation menu"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <MenuIcon />
-          </IconButton>
-        ) : (
-          <Stack direction="row" spacing={2}>
-            {NAV_ITEMS.map((item) => (
-              <Button key={item} color="inherit">
-                {item}
-              </Button>
-            ))}
+
+        {!isMobile && (
+          <Stack direction="row" spacing={1}>
+            {NAV_ITEMS.map((item) => {
+              const active = pathname === item.to;
+              return (
+                <Button
+                  key={item.to}
+                  component={RouterLink}
+                  to={item.to}
+                  color="inherit"
+                  startIcon={item.icon}
+                  sx={{
+                    borderBottom: 2,
+                    borderRadius: 0,
+                    borderColor: active ? 'primary.main' : 'transparent',
+                    opacity: active ? 1 : 0.75,
+                  }}
+                >
+                  {item.label}
+                </Button>
+              );
+            })}
           </Stack>
         )}
-        <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-          <Box sx={{ width: 240 }} role="presentation">
-            <List>
-              {NAV_ITEMS.map((item) => (
-                <ListItemButton key={item} onClick={() => setDrawerOpen(false)}>
-                  <ListItemText primary={item} />
-                </ListItemButton>
-              ))}
-            </List>
-          </Box>
-        </Drawer>
       </Toolbar>
     </AppBar>
   );
