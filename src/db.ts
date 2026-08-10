@@ -13,8 +13,29 @@ export interface PantryItem {
   expiresAt?: Date;
 }
 
+export interface RecipeIngredient {
+  name: string;
+  amount: string;
+}
+
+export interface SavedRecipe {
+  id: number;
+  title: string;
+  description: string;
+  servings: number;
+  prepMinutes: number;
+  cookMinutes: number;
+  ingredients: RecipeIngredient[];
+  steps: string[];
+  tags: string[];
+  favourited: boolean;
+  savedAt: Date;
+  usedItemNames: string[];
+}
+
 const db = new Dexie('PantryDB') as Dexie & {
   items: EntityTable<PantryItem, 'id'>;
+  recipes: EntityTable<SavedRecipe, 'id'>;
 };
 
 db.version(1).stores({
@@ -33,5 +54,9 @@ db.version(2)
         item.location = 'pantry';
       }),
   );
+
+db.version(3).stores({
+  recipes: '++id, title, favourited, savedAt',
+});
 
 export { db };

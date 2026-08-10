@@ -14,10 +14,11 @@ import {
   Typography,
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import PageHeading from '../components/PageHeading';
 import RecipeCard from '../components/RecipeCard';
-import type { PantryItem } from '../db';
+import { db, type PantryItem } from '../db';
 import { useAllItems } from '../hooks/useItems';
 import { describeExpiry, isUrgent } from '../utils/expiry';
 import {
@@ -45,6 +46,7 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GeneratedRecipe | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!items || initialised) return;
@@ -87,6 +89,7 @@ export default function GeneratePage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setSaved(false);
     try {
       const recipe = await generateRecipe({
         ingredients: chosen.map(describeItem),
@@ -104,6 +107,17 @@ export default function GeneratePage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSave() {
+    if (!result) return;
+    await db.recipes.add({
+      ...result,
+      favourited: false,
+      savedAt: new Date(),
+      usedItemNames: chosen.map((item) => item.name),
+    });
+    setSaved(true);
   }
 
   return (
@@ -247,11 +261,29 @@ export default function GeneratePage() {
       )}
 
       {result && (
-        <RecipeCard
-          recipe={result}
-          defaultExpanded
-          availableItemNames={items.map((item) => item.name)}
-        />
+        <>
+          {saved && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              Saved to your recipes.
+            </Alert>
+          )}
+          <RecipeCard
+            recipe={result}
+            defaultExpanded
+            availableItemNames={items.map((item) => item.name)}
+            actions={
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={saved ? <CheckIcon /> : <BookmarkAddOutlinedIcon />}
+                onClick={handleSave}
+                disabled={saved}
+              >
+                {saved ? 'Saved' : 'Save recipe'}
+              </Button>
+            }
+          />
+        </>
       )}
     </>
   );

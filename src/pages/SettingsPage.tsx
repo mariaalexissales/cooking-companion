@@ -3,6 +3,8 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  Chip,
+  Divider,
   Paper,
   ToggleButton,
   ToggleButtonGroup,
@@ -11,17 +13,29 @@ import {
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useLiveQuery } from 'dexie-react-hooks';
 import PageHeading from '../components/PageHeading';
 import { useThemeController } from '../theme/context';
 import { THEME_FAMILIES, THEME_META, swatchesFor } from '../theme/themes';
 import type { ThemeMode } from '../theme/tokens';
+import { db } from '../db';
+import { isGeneratorConfigured } from '../services/recipeApi';
 
 export default function SettingsPage() {
   const { family, mode, setFamily, setMode } = useThemeController();
 
+  const counts = useLiveQuery(async () => {
+    const [pantry, fridge, recipes] = await Promise.all([
+      db.items.where('location').equals('pantry').count(),
+      db.items.where('location').equals('fridge').count(),
+      db.recipes.count(),
+    ]);
+    return { pantry, fridge, recipes };
+  }, []);
+
   return (
     <>
-      <PageHeading title="Settings" subtitle="How the app looks." />
+      <PageHeading title="Settings" subtitle="Themes, and what's stored on this device." />
 
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
         <Box
@@ -98,6 +112,28 @@ export default function SettingsPage() {
             );
           })}
         </Box>
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="overline" color="text.secondary">
+          On this device
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', my: 1.5 }}>
+          <Chip label={`${counts?.pantry ?? 0} pantry items`} variant="outlined" />
+          <Chip label={`${counts?.fridge ?? 0} fridge items`} variant="outlined" />
+          <Chip label={`${counts?.recipes ?? 0} saved recipes`} variant="outlined" />
+        </Box>
+        <Divider sx={{ my: 1.5 }} />
+        <Typography variant="body2" color="text.secondary">
+          Everything lives in this browser's IndexedDB. There's no account and no sync — clearing
+          site data clears the app.
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Recipe generator:{' '}
+          <Box component="span" sx={{ color: isGeneratorConfigured() ? 'success.main' : 'warning.main' }}>
+            {isGeneratorConfigured() ? 'connected' : 'not configured'}
+          </Box>
+        </Typography>
       </Paper>
     </>
   );
