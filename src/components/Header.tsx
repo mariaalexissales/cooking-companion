@@ -2,19 +2,26 @@ import {
   AppBar,
   Box,
   Button,
+  IconButton,
   Stack,
   Toolbar,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import companionImg from '../assets/image.png';
 import { NAV_ITEMS } from './navItems';
+import { useThemeController } from '../theme/context';
 
 export default function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { mode, toggleMode } = useThemeController();
   const { pathname } = useLocation();
 
   return (
@@ -36,19 +43,10 @@ export default function Header() {
         />
 
         <Box sx={{ ml: { xs: 1, sm: 2 }, minWidth: 0 }}>
-          <Typography
-            variant="h1"
-            component={RouterLink}
-            to="/"
-            sx={{
-              color: 'inherit',
-              textDecoration: 'none',
-              fontSize: { xs: '22px', sm: '48px' },
-            }}
-          >
+          <Typography variant="h1" component={RouterLink} to="/" sx={{ color: 'inherit', textDecoration: 'none' }}>
             Cooking Companion
           </Typography>
-          <Typography variant="subtitle1" sx={{ fontSize: { xs: '15px', sm: '32px' } }} noWrap>
+          <Typography variant="subtitle1" color="text.secondary" noWrap>
             I am the cooking companion that never leaves your side!
           </Typography>
         </Box>
@@ -79,6 +77,22 @@ export default function Header() {
             })}
           </Stack>
         )}
+
+        <Tooltip title={mode === 'dark' ? 'Switch to light' : 'Switch to dark'}>
+          <IconButton
+            color="inherit"
+            onClick={toggleMode}
+            aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Settings">
+          <IconButton component={RouterLink} to="/settings" color="inherit" aria-label="Settings">
+            <SettingsOutlinedIcon />
+          </IconButton>
+        </Tooltip>
       </Toolbar>
     </AppBar>
   );

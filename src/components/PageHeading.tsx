@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactNode } from 'react';
 
 interface PageHeadingProps {
@@ -8,6 +8,9 @@ interface PageHeadingProps {
 }
 
 export default function PageHeading({ title, subtitle, action }: PageHeadingProps) {
+  const theme = useTheme();
+  const isEstral = theme.app.family === 'estral';
+
   return (
     <Box
       sx={{
@@ -20,7 +23,16 @@ export default function PageHeading({ title, subtitle, action }: PageHeadingProp
       }}
     >
       <Box sx={{ minWidth: 0 }}>
-        <Typography variant="h5" component="h2">
+        <Typography
+          variant="h5"
+          component="h2"
+          sx={{ color: isEstral ? theme.palette.readout.main : 'text.primary' }}
+        >
+          {theme.app.headingPrefix && (
+            <Box component="span" sx={{ color: 'primary.main' }}>
+              {theme.app.headingPrefix}
+            </Box>
+          )}
           {title}
         </Typography>
         {subtitle && (

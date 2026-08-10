@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import PantryPage from './pages/PantryPage';
+import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
   const theme = useTheme();
@@ -18,6 +19,7 @@ export default function App() {
       >
         <Routes>
           <Route path="/" element={<PantryPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Container>
