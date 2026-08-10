@@ -4,6 +4,7 @@ import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import PantryPage from './pages/PantryPage';
 import FridgePage from './pages/FridgePage';
+import GeneratePage from './pages/GeneratePage';
 import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<PantryPage />} />
           <Route path="/fridge" element={<FridgePage />} />
+          <Route path="/generate" element={<GeneratePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
