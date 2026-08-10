@@ -1,5 +1,6 @@
 import {
   AppBar,
+  Badge,
   Box,
   Button,
   IconButton,
@@ -17,12 +18,14 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import companionImg from '../assets/image.png';
 import { NAV_ITEMS } from './navItems';
 import { useThemeController } from '../theme/context';
+import { useUrgentCount } from '../hooks/useItems';
 
 export default function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleMode } = useThemeController();
   const { pathname } = useLocation();
+  const urgentCount = useUrgentCount();
 
   return (
     <AppBar position="sticky">
@@ -57,7 +60,7 @@ export default function Header() {
           <Stack direction="row" spacing={1}>
             {NAV_ITEMS.map((item) => {
               const active = pathname === item.to;
-              return (
+              const button = (
                 <Button
                   key={item.to}
                   component={RouterLink}
@@ -73,6 +76,13 @@ export default function Header() {
                 >
                   {item.label}
                 </Button>
+              );
+              return item.badge === 'urgent' && urgentCount > 0 ? (
+                <Badge key={item.to} badgeContent={urgentCount} color="error">
+                  {button}
+                </Badge>
+              ) : (
+                button
               );
             })}
           </Stack>

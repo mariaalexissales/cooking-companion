@@ -1,9 +1,11 @@
-import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
+import { Badge, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { NAV_ITEMS } from './navItems';
+import { useUrgentCount } from '../hooks/useItems';
 
 export default function BottomNav() {
   const { pathname } = useLocation();
+  const urgentCount = useUrgentCount();
 
   const current = NAV_ITEMS.some((item) => item.to === pathname) ? pathname : false;
 
@@ -28,7 +30,15 @@ export default function BottomNav() {
             to={item.to}
             value={item.to}
             label={item.label}
-            icon={item.icon}
+            icon={
+              item.badge === 'urgent' && urgentCount > 0 ? (
+                <Badge badgeContent={urgentCount} color="error">
+                  {item.icon}
+                </Badge>
+              ) : (
+                item.icon
+              )
+            }
           />
         ))}
       </BottomNavigation>

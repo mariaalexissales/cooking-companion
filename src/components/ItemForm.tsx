@@ -14,24 +14,29 @@ import {
   type SelectChangeEvent,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { db, type PantryItem } from '../db';
+import { db, type ItemLocation, type PantryItem } from '../db';
+import { fromDateInputValue } from '../utils/expiry';
 
 const UNITS = ['pcs', 'g', 'kg', 'ml', 'l', 'oz', 'lb', 'cup', 'tbsp', 'tsp'];
 
 interface ItemFormProps {
+  location: ItemLocation;
   existingItems: PantryItem[];
+  showExpiry?: boolean;
 }
 
-export default function ItemForm({ existingItems }: ItemFormProps) {
+export default function ItemForm({ location, existingItems, showExpiry = false }: ItemFormProps) {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState('pcs');
+  const [expiry, setExpiry] = useState('');
   const [duplicate, setDuplicate] = useState<PantryItem | null>(null);
 
   function reset() {
     setName('');
     setQuantity(1);
     setUnit('pcs');
+    setExpiry('');
   }
 
   async function insert() {
@@ -41,6 +46,8 @@ export default function ItemForm({ existingItems }: ItemFormProps) {
       unit,
       favourited: false,
       addedAt: new Date(),
+      location,
+      expiresAt: showExpiry ? fromDateInputValue(expiry) : undefined,
     });
     reset();
   }
@@ -63,7 +70,10 @@ export default function ItemForm({ existingItems }: ItemFormProps) {
 
   async function mergeIntoExisting() {
     if (!duplicate) return;
-    await db.items.update(duplicate.id, { quantity: duplicate.quantity + quantity });
+    await db.items.update(duplicate.id, {
+      quantity: duplicate.quantity + quantity,
+      ...(showExpiry && expiry ? { expiresAt: fromDateInputValue(expiry) } : {}),
+    });
     setDuplicate(null);
     reset();
   }
@@ -88,7 +98,7 @@ export default function ItemForm({ existingItems }: ItemFormProps) {
         }}
       >
         <TextField
-          label="Pantry item"
+          label={location === 'fridge' ? 'Fridge item' : 'Pantry item'}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
@@ -114,6 +124,16 @@ export default function ItemForm({ existingItems }: ItemFormProps) {
             </MenuItem>
           ))}
         </Select>
+        {showExpiry && (
+          <TextField
+            label="Expires"
+            type="date"
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            sx={{ flex: '1 1 160px', minWidth: 160 }}
+          />
+        )}
         <Box sx={{ flex: '0 0 auto' }}>
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} fullWidth>
             Add

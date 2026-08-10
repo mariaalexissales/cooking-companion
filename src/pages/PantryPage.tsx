@@ -1,12 +1,11 @@
 import { Box, CircularProgress } from '@mui/material';
-import { useLiveQuery } from 'dexie-react-hooks';
 import PageHeading from '../components/PageHeading';
 import ItemForm from '../components/ItemForm';
 import ItemList from '../components/ItemList';
-import { db } from '../db';
+import { useItemsByLocation } from '../hooks/useItems';
 
 export default function PantryPage() {
-  const items = useLiveQuery(() => db.items.toArray(), []);
+  const items = useItemsByLocation('pantry');
 
   if (!items) {
     return (
@@ -27,7 +26,7 @@ export default function PantryPage() {
         title="Pantry"
         subtitle="Cupboard staples. Favourites stay pinned to the top."
       />
-      <ItemForm existingItems={items} />
+      <ItemForm location="pantry" existingItems={items} />
       <ItemList
         items={sorted}
         emptyTitle="Nothing in the pantry yet"
