@@ -20,7 +20,6 @@ export interface ThemeTokens {
   success: string;
   bgImage: string | null;
   texture: string | null;
-  textureBlend: string;
   aberration: [string, string] | null;
 }
 
@@ -47,7 +46,6 @@ export const TOKENS: Record<ThemeFamily, Record<ThemeMode, ThemeTokens>> = {
         'radial-gradient(circle at 15% 0%, rgba(232,196,106,.06), transparent 45%), ' +
         'radial-gradient(circle at 85% 100%, rgba(120,58,64,.28), transparent 50%)',
       texture: null,
-      textureBlend: 'normal',
       aberration: null,
     },
     light: {
@@ -71,7 +69,6 @@ export const TOKENS: Record<ThemeFamily, Record<ThemeMode, ThemeTokens>> = {
         'radial-gradient(circle at 15% 0%, rgba(138,100,16,.05), transparent 45%), ' +
         'radial-gradient(circle at 85% 100%, rgba(122,46,51,.06), transparent 50%)',
       texture: null,
-      textureBlend: 'normal',
       aberration: null,
     },
   },
@@ -99,7 +96,6 @@ export const TOKENS: Record<ThemeFamily, Record<ThemeMode, ThemeTokens>> = {
         'radial-gradient(circle at 82% 78%, rgba(232,95,255,.08), transparent 46%)',
       texture:
         'repeating-linear-gradient(to bottom, rgba(0,0,0,.22) 0 1px, transparent 1px 3px)',
-      textureBlend: 'multiply',
       aberration: ['#ff0040', '#00ffe1'],
     },
     light: {
@@ -124,7 +120,6 @@ export const TOKENS: Record<ThemeFamily, Record<ThemeMode, ThemeTokens>> = {
         'radial-gradient(circle at 82% 78%, rgba(168,31,176,.05), transparent 46%)',
       texture:
         'repeating-linear-gradient(to bottom, rgba(91,47,191,.05) 0 1px, transparent 1px 4px)',
-      textureBlend: 'normal',
       aberration: ['#e0004a', '#0090c0'],
     },
   },
@@ -149,7 +144,6 @@ export const TOKENS: Record<ThemeFamily, Record<ThemeMode, ThemeTokens>> = {
       success: '#66bb6a',
       bgImage: null,
       texture: null,
-      textureBlend: 'normal',
       aberration: null,
     },
     light: {
@@ -171,7 +165,6 @@ export const TOKENS: Record<ThemeFamily, Record<ThemeMode, ThemeTokens>> = {
       success: '#2e7d32',
       bgImage: null,
       texture: null,
-      textureBlend: 'normal',
       aberration: null,
     },
   },

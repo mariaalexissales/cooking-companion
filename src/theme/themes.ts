@@ -34,6 +34,11 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
   const isEstral = family === 'estral';
   const base = createTheme({ palette: { mode } });
 
+  // The texture is part of the surface rather than a layer over it, so it rules the
+  // paper behind the text instead of tinting everything on the page.
+  const surfaceTexture = t.texture ?? 'none';
+  const pageBackground = [t.texture, t.bgImage].filter(Boolean).join(', ') || 'none';
+
   return createTheme({
     palette: {
       mode,
@@ -92,7 +97,6 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
       family,
       mode,
       texture: t.texture,
-      textureBlend: t.textureBlend,
       aberration: t.aberration,
       headingPrefix: HEADING_PREFIX[family],
       border: t.border,
@@ -103,21 +107,8 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
         styleOverrides: {
           body: {
             backgroundColor: t.bg,
-            backgroundImage: t.bgImage ?? 'none',
+            backgroundImage: pageBackground,
             backgroundAttachment: 'fixed',
-            ...(t.texture
-              ? {
-                  '&::after': {
-                    content: '""',
-                    position: 'fixed',
-                    inset: 0,
-                    pointerEvents: 'none',
-                    zIndex: 2000,
-                    background: t.texture,
-                    mixBlendMode: t.textureBlend,
-                  },
-                }
-              : {}),
           },
         },
       },
@@ -127,7 +118,7 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
         styleOverrides: {
           root: {
             backgroundColor: t.surface,
-            backgroundImage: 'none',
+            backgroundImage: surfaceTexture,
             color: t.text,
             borderBottom: `1px solid ${t.border}`,
           },
@@ -137,7 +128,7 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
       MuiPaper: {
         styleOverrides: {
           root: {
-            backgroundImage: 'none',
+            backgroundImage: surfaceTexture,
             ...(isEstral ? { border: `1px solid ${t.border}` } : {}),
           },
         },

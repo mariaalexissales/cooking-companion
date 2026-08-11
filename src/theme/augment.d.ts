@@ -4,7 +4,6 @@ export interface AppThemeExtras {
   family: ThemeFamily;
   mode: ThemeMode;
   texture: string | null;
-  textureBlend: string;
   aberration: [string, string] | null;
   headingPrefix: string;
   border: string;
