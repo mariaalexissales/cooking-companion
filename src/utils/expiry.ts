@@ -13,7 +13,6 @@ function startOfDay(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 }
 
-/** Whole days from today to `date`, negative once the date has passed. */
 export function daysUntil(date: Date, now: Date = new Date()): number {
   const msPerDay = 86_400_000;
   return Math.round((startOfDay(date) - startOfDay(now)) / msPerDay);
@@ -39,20 +38,17 @@ export function describeExpiry(expiresAt: Date | undefined, now: Date = new Date
   return { status: 'fresh', days, label: `${days} days left` };
 }
 
-/** Items worth acting on: already expired, or inside the critical window. */
 export function isUrgent(expiresAt: Date | undefined, now: Date = new Date()): boolean {
   const { status } = describeExpiry(expiresAt, now);
   return status === 'expired' || status === 'critical';
 }
 
-/** `Date` to the `yyyy-mm-dd` a native date input expects, in local time. */
 export function toDateInputValue(date: Date | undefined): string {
   if (!date) return '';
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-/** `yyyy-mm-dd` from a native date input to a local-midnight `Date`. */
 export function fromDateInputValue(value: string): Date | undefined {
   if (!value) return undefined;
   const [year, month, day] = value.split('-').map(Number);
@@ -60,7 +56,6 @@ export function fromDateInputValue(value: string): Date | undefined {
   return new Date(year, month - 1, day);
 }
 
-/** Sort comparator: soonest expiry first, undated items last. */
 export function byExpiry(a: { expiresAt?: Date }, b: { expiresAt?: Date }): number {
   if (!a.expiresAt && !b.expiresAt) return 0;
   if (!a.expiresAt) return 1;

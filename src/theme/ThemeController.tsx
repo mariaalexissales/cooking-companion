@@ -38,15 +38,20 @@ function readStoredPreference(): StoredPreference {
   }
 }
 
+function persistPreference(preference: StoredPreference): boolean {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preference));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export default function ThemeControllerProvider({ children }: { children: ReactNode }) {
   const [preference, setPreference] = useState<StoredPreference>(readStoredPreference);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preference));
-    } catch {
-      // Private browsing or a full quota — the theme just won't persist.
-    }
+    persistPreference(preference);
   }, [preference]);
 
   useEffect(() => {

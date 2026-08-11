@@ -34,8 +34,6 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
   const isEstral = family === 'estral';
   const base = createTheme({ palette: { mode } });
 
-  // The texture is part of the surface rather than a layer over it, so it rules the
-  // paper behind the text instead of tinting everything on the page.
   const surfaceTexture = t.texture ?? 'none';
   const pageBackground = [t.texture, t.bgImage].filter(Boolean).join(', ') || 'none';
 

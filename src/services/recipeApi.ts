@@ -64,6 +64,18 @@ function isRecipe(value: unknown): value is GeneratedRecipe {
   );
 }
 
+async function readErrorDetail(response: Response): Promise<string> {
+  try {
+    const body: unknown = await response.json();
+    if (typeof body === 'object' && body !== null && 'error' in body) {
+      return String((body as { error: unknown }).error);
+    }
+    return '';
+  } catch {
+    return '';
+  }
+}
+
 export async function generateRecipe(request: GenerateRequest): Promise<GeneratedRecipe> {
   const endpoint = ENDPOINT;
   if (!endpoint) {
@@ -99,15 +111,7 @@ export async function generateRecipe(request: GenerateRequest): Promise<Generate
   }
 
   if (!response.ok) {
-    let detail = '';
-    try {
-      const body: unknown = await response.json();
-      if (typeof body === 'object' && body !== null && 'error' in body) {
-        detail = String((body as { error: unknown }).error);
-      }
-    } catch {
-      // Non-JSON error body — the status alone will have to do.
-    }
+    const detail = await readErrorDetail(response);
     throw new RecipeApiError(
       'upstream',
       detail || `The recipe service returned an error (${response.status}).`,
