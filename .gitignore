@@ -31,5 +31,4 @@ dist-ssr
 .dev.vars
 
 # Tooling
-.claude/
 .wrangler/
