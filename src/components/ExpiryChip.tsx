@@ -1,4 +1,5 @@
 import Chip from '@mui/material/Chip';
+import type { SxProps, Theme } from '@mui/material/styles';
 import EventBusyOutlinedIcon from '@mui/icons-material/EventBusyOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
@@ -19,9 +20,10 @@ const FILLED: ExpiryStatus[] = ['expired', 'critical'];
 interface ExpiryChipProps {
   expiresAt?: Date;
   onClick?: () => void;
+  sx?: SxProps<Theme>;
 }
 
-export default function ExpiryChip({ expiresAt, onClick }: ExpiryChipProps) {
+export default function ExpiryChip({ expiresAt, onClick, sx }: ExpiryChipProps) {
   const { status, label } = describeExpiry(expiresAt);
 
   const icon =
@@ -42,6 +44,7 @@ export default function ExpiryChip({ expiresAt, onClick }: ExpiryChipProps) {
       variant={FILLED.includes(status) ? 'filled' : 'outlined'}
       onClick={onClick}
       aria-label={onClick ? `${label}. Change expiry date` : label}
+      sx={sx}
     />
   );
 }

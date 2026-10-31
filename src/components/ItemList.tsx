@@ -27,6 +27,8 @@ import ExpiryChip from './ExpiryChip';
 import { db, type PantryItem } from '../db';
 import { fromDateInputValue, toDateInputValue } from '../utils/expiry';
 
+const rowButtonSx = { p: { xs: 1, sm: 0.5 } } as const;
+
 interface ItemListProps {
   items: PantryItem[];
   showExpiry?: boolean;
@@ -95,35 +97,77 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
-                gap: 1,
+                columnGap: 1,
+                rowGap: 0.5,
                 py: 1.5,
               }}
             >
-              <IconButton
-                onClick={() => toggleFavourite(item)}
-                aria-label={item.favourited ? `Unfavourite ${item.name}` : `Favourite ${item.name}`}
-              >
-                {item.favourited ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
-              </IconButton>
-
               <ListItemText
                 primary={item.name}
-                sx={{ flex: '1 1 130px', minWidth: 0, my: 0 }}
+                sx={{
+                  flex: { xs: '1 1 auto', sm: '1 1 130px' },
+                  minWidth: 0,
+                  my: 0,
+                  order: { xs: 1, sm: 2 },
+                }}
                 slotProps={{ primary: { sx: { fontWeight: item.favourited ? 600 : 400 } } }}
               />
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              {(showExpiry || item.expiresAt) && (
+                <ExpiryChip
+                  expiresAt={item.expiresAt}
+                  onClick={() => openExpiryEditor(item)}
+                  sx={{ order: { xs: 2, sm: 4 } }}
+                />
+              )}
+
+              <Box
+                aria-hidden
+                sx={{
+                  flexBasis: '100%',
+                  height: 0,
+                  order: 3,
+                  display: { xs: 'block', sm: 'none' },
+                }}
+              />
+
+              <IconButton
+                size="small"
+                onClick={() => toggleFavourite(item)}
+                aria-label={item.favourited ? `Unfavourite ${item.name}` : `Favourite ${item.name}`}
+                sx={{ ...rowButtonSx, order: { xs: 4, sm: 1 }, ml: { xs: 'auto', sm: 0 } }}
+              >
+                {item.favourited ? (
+                  <FavoriteIcon color="error" fontSize="small" />
+                ) : (
+                  <FavoriteBorderIcon fontSize="small" />
+                )}
+              </IconButton>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  order: { xs: 5, sm: 3 },
+                }}
+              >
                 <IconButton
                   size="small"
                   onClick={() => setQuantity(item, item.quantity - 1)}
                   disabled={item.quantity <= 0}
                   aria-label={`Decrease ${item.name}`}
+                  sx={rowButtonSx}
                 >
                   <RemoveIcon fontSize="small" />
                 </IconButton>
                 <Typography
                   variant="body2"
-                  sx={{ minWidth: 68, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
+                  sx={{
+                    minWidth: { xs: 56, sm: 68 },
+                    textAlign: 'center',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
                 >
                   {item.quantity} {item.unit}
                 </Typography>
@@ -131,14 +175,11 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
                   size="small"
                   onClick={() => setQuantity(item, item.quantity + 1)}
                   aria-label={`Increase ${item.name}`}
+                  sx={rowButtonSx}
                 >
                   <AddIcon fontSize="small" />
                 </IconButton>
               </Box>
-
-              {(showExpiry || item.expiresAt) && (
-                <ExpiryChip expiresAt={item.expiresAt} onClick={() => openExpiryEditor(item)} />
-              )}
 
               <Tooltip title={item.location === 'pantry' ? 'Move to fridge' : 'Move to pantry'}>
                 <IconButton
@@ -149,6 +190,7 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
                       ? `Move ${item.name} to fridge`
                       : `Move ${item.name} to pantry`
                   }
+                  sx={{ ...rowButtonSx, order: { xs: 6, sm: 5 } }}
                 >
                   {item.location === 'pantry' ? (
                     <KitchenIcon fontSize="small" />
@@ -162,6 +204,7 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
                 size="small"
                 onClick={() => setPendingDelete(item)}
                 aria-label={`Remove ${item.name}`}
+                sx={{ ...rowButtonSx, order: { xs: 7, sm: 6 } }}
               >
                 <DeleteOutlineIcon fontSize="small" />
               </IconButton>

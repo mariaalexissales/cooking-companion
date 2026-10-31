@@ -1,7 +1,8 @@
-import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Container, useTheme } from '@mui/material';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
+import { BOTTOM_NAV_HEIGHT, useIsCompact } from './hooks/useLayout';
 import PantryPage from './pages/PantryPage';
 import FridgePage from './pages/FridgePage';
 import RecipesPage from './pages/RecipesPage';
@@ -10,7 +11,7 @@ import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isCompact = useIsCompact();
 
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
@@ -18,7 +19,13 @@ export default function App() {
       <Container
         component="main"
         maxWidth="md"
-        sx={{ flex: 1, py: 3, pb: isMobile ? 12 : 4 }}
+        sx={{
+          flex: 1,
+          py: 3,
+          pb: isCompact
+            ? `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + ${theme.spacing(3)})`
+            : 4,
+        }}
       >
         <Routes>
           <Route path="/" element={<PantryPage />} />
@@ -29,7 +36,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Container>
-      {isMobile && <BottomNav />}
+      {isCompact && <BottomNav />}
     </Box>
   );
 }

@@ -207,14 +207,14 @@ export default function GeneratePage() {
               value={servings}
               onChange={(e) => setServings(Math.max(1, Number(e.target.value)))}
               slotProps={{ htmlInput: { min: 1, max: 12 } }}
-              sx={{ flex: '0 1 140px' }}
+              sx={{ flex: { sm: '0 1 140px' }, width: { xs: '100%', sm: 'auto' } }}
             />
             <TextField
               select
               label="Meal"
               value={mealType}
               onChange={(e) => setMealType(e.target.value)}
-              sx={{ flex: '0 1 180px' }}
+              sx={{ flex: { sm: '0 1 180px' }, width: { xs: '100%', sm: 'auto' } }}
             >
               {MEAL_TYPES.map((type) => (
                 <MenuItem key={type} value={type}>

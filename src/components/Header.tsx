@@ -8,7 +8,6 @@ import {
   Toolbar,
   Tooltip,
   Typography,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
@@ -19,24 +18,25 @@ import companionImg from '../assets/image.png';
 import { NAV_ITEMS } from './navItems';
 import { useThemeController } from '../theme/context';
 import { useUrgentCount } from '../hooks/useItems';
+import { useIsCompact } from '../hooks/useLayout';
 
 export default function Header() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isCompact = useIsCompact();
   const { mode, toggleMode } = useThemeController();
   const { pathname } = useLocation();
   const urgentCount = useUrgentCount();
 
   return (
     <AppBar position="sticky">
-      <Toolbar sx={{ gap: 1 }}>
+      <Toolbar sx={{ gap: 1, flexWrap: 'wrap', px: { xs: 1.5, sm: 3 } }}>
         <Box
           component="img"
           src={companionImg}
           alt=""
           sx={{
-            height: { xs: 48, sm: 88 },
-            width: { xs: 48, sm: 88 },
+            height: { xs: 44, sm: 64, md: 88 },
+            width: { xs: 44, sm: 64, md: 88 },
             objectFit: 'cover',
             border: `3px solid ${theme.palette.text.primary}`,
             borderRadius: '50%',
@@ -49,14 +49,19 @@ export default function Header() {
           <Typography variant="h1" component={RouterLink} to="/" sx={{ color: 'inherit', textDecoration: 'none' }}>
             Cooking Companion
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary" noWrap>
+          <Typography
+            variant="subtitle1"
+            color="text.secondary"
+            noWrap
+            sx={{ display: { xs: 'none', sm: 'block' } }}
+          >
             I am the cooking companion that never leaves your side!
           </Typography>
         </Box>
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {!isMobile && (
+        {!isCompact && (
           <Stack direction="row" spacing={1}>
             {NAV_ITEMS.map((item) => {
               const active = pathname === item.to;
@@ -93,13 +98,20 @@ export default function Header() {
             color="inherit"
             onClick={toggleMode}
             aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            sx={{ p: { xs: 0.75, sm: 1 } }}
           >
             {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
           </IconButton>
         </Tooltip>
 
         <Tooltip title="Settings">
-          <IconButton component={RouterLink} to="/settings" color="inherit" aria-label="Settings">
+          <IconButton
+            component={RouterLink}
+            to="/settings"
+            color="inherit"
+            aria-label="Settings"
+            sx={{ p: { xs: 0.75, sm: 1 } }}
+          >
             <SettingsOutlinedIcon />
           </IconButton>
         </Tooltip>
