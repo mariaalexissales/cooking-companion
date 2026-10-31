@@ -35,8 +35,8 @@ export default function Header() {
           src={companionImg}
           alt=""
           sx={{
-            height: { xs: 44, sm: 64, md: 88 },
-            width: { xs: 44, sm: 64, md: 88 },
+            height: { xs: 44, sm: 64, lg: 88 },
+            width: { xs: 44, sm: 64, lg: 88 },
             objectFit: 'cover',
             border: `3px solid ${theme.palette.text.primary}`,
             borderRadius: '50%',
@@ -46,14 +46,24 @@ export default function Header() {
         />
 
         <Box sx={{ ml: { xs: 1, sm: 2 }, minWidth: 0 }}>
-          <Typography variant="h1" component={RouterLink} to="/" sx={{ color: 'inherit', textDecoration: 'none' }}>
+          <Typography
+            variant="h1"
+            component={RouterLink}
+            to="/"
+            sx={{
+              color: 'inherit',
+              textDecoration: 'none',
+              fontSize: { md: '1.6rem', lg: 'clamp(1.15rem, 2.6vw, 2.75rem)' },
+              whiteSpace: { md: 'nowrap' },
+            }}
+          >
             Cooking Companion
           </Typography>
           <Typography
             variant="subtitle1"
             color="text.secondary"
             noWrap
-            sx={{ display: { xs: 'none', sm: 'block' } }}
+            sx={{ display: { xs: 'none', sm: 'block', md: 'none', lg: 'block' } }}
           >
             I am the cooking companion that never leaves your side!
           </Typography>

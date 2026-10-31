@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { Alert, Box, CircularProgress } from '@mui/material';
 import PageHeading from '../components/PageHeading';
-import ItemForm from '../components/ItemForm';
+import SearchAddBar from '../components/SearchAddBar';
 import ItemList from '../components/ItemList';
 import { useItemsByLocation } from '../hooks/useItems';
-import { byExpiry, describeExpiry } from '../utils/expiry';
+import { describeExpiry } from '../utils/expiry';
+import { isOut, matchesQuery, sortFridge } from '../utils/items';
 
 export default function FridgePage() {
   const items = useItemsByLocation('fridge');
+  const pantryItems = useItemsByLocation('pantry');
+  const [query, setQuery] = useState('');
 
   if (!items) {
     return (
@@ -16,19 +20,17 @@ export default function FridgePage() {
     );
   }
 
-  const sorted = [...items].sort((a, b) => {
-    const byDate = byExpiry(a, b);
-    return byDate !== 0 ? byDate : a.name.localeCompare(b.name);
-  });
-
-  const expired = items.filter((item) => describeExpiry(item.expiresAt).status === 'expired');
-  const critical = items.filter((item) => describeExpiry(item.expiresAt).status === 'critical');
+  const visible = sortFridge(items.filter((item) => matchesQuery(item, query)));
+  const searching = query.trim().length > 0;
+  const inStock = items.filter((item) => !isOut(item));
+  const expired = inStock.filter((item) => describeExpiry(item.expiresAt).status === 'expired');
+  const critical = inStock.filter((item) => describeExpiry(item.expiresAt).status === 'critical');
 
   return (
     <>
       <PageHeading
         title="Refrigerator"
-        subtitle="Sorted by what goes off first. Tap a date chip to change it."
+        subtitle="Sorted by what goes off first. Tap a date to change it."
       />
 
       {expired.length > 0 && (
@@ -46,12 +48,22 @@ export default function FridgePage() {
         </Alert>
       )}
 
-      <ItemForm location="fridge" existingItems={items} showExpiry />
+      <SearchAddBar
+        location="fridge"
+        items={items}
+        otherItems={pantryItems ?? []}
+        query={query}
+        onQueryChange={setQuery}
+      />
       <ItemList
-        items={sorted}
+        items={visible}
         showExpiry
-        emptyTitle="The fridge is empty"
-        emptyHint="Add something with an expiry date and it will be sorted by what goes off first."
+        emptyTitle={searching ? `No “${query.trim()}” in the fridge` : 'The fridge is empty'}
+        emptyHint={
+          searching
+            ? 'Use Add to put it on the list.'
+            : 'Add something with an expiry date and it will be sorted by what goes off first.'
+        }
       />
     </>
   );

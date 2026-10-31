@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import PageHeading from '../components/PageHeading';
-import ItemForm from '../components/ItemForm';
+import SearchAddBar from '../components/SearchAddBar';
 import ItemList from '../components/ItemList';
 import { useItemsByLocation } from '../hooks/useItems';
+import { matchesQuery, sortPantry } from '../utils/items';
 
 export default function PantryPage() {
   const items = useItemsByLocation('pantry');
+  const fridgeItems = useItemsByLocation('fridge');
+  const [query, setQuery] = useState('');
 
   if (!items) {
     return (
@@ -15,22 +19,27 @@ export default function PantryPage() {
     );
   }
 
-  const sorted = [...items].sort((a, b) => {
-    if (a.favourited !== b.favourited) return a.favourited ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
+  const visible = sortPantry(items.filter((item) => matchesQuery(item, query)));
+  const searching = query.trim().length > 0;
 
   return (
     <>
-      <PageHeading
-        title="Pantry"
-        subtitle="Cupboard staples. Favourites stay pinned to the top."
+      <PageHeading title="Pantry" subtitle="Cupboard food. Staples stay pinned to the top." />
+      <SearchAddBar
+        location="pantry"
+        items={items}
+        otherItems={fridgeItems ?? []}
+        query={query}
+        onQueryChange={setQuery}
       />
-      <ItemForm location="pantry" existingItems={items} />
       <ItemList
-        items={sorted}
-        emptyTitle="Nothing in the pantry yet"
-        emptyHint="Add your first item above. Everything stays on this device."
+        items={visible}
+        emptyTitle={searching ? `No “${query.trim()}” in the pantry` : 'Nothing in the pantry yet'}
+        emptyHint={
+          searching
+            ? 'Use Add to put it on the list.'
+            : 'Use Add above for your first item. Everything stays on this device.'
+        }
       />
     </>
   );

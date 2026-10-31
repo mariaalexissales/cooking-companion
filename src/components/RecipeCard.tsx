@@ -20,8 +20,19 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import ScheduleIcon from '@mui/icons-material/ScheduleOutlined';
 import RestaurantIcon from '@mui/icons-material/RestaurantOutlined';
+import SoupKitchenOutlinedIcon from '@mui/icons-material/SoupKitchenOutlined';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import CookMode from './CookMode';
 import type { GeneratedRecipe } from '../services/recipeApi';
 import { isCovered } from '../utils/matching';
+import { shareShoppingList, type ShareOutcome } from '../utils/shoppingList';
+
+const SHARE_LABEL: Record<ShareOutcome, string> = {
+  shared: 'Shared',
+  copied: 'Copied',
+  failed: "Couldn't copy",
+  cancelled: 'Copy shopping list',
+};
 
 interface RecipeCardProps {
   recipe: GeneratedRecipe;
@@ -43,6 +54,8 @@ export default function RecipeCard({
   actions,
 }: RecipeCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [cooking, setCooking] = useState(false);
+  const [shareState, setShareState] = useState<ShareOutcome>('cancelled');
   const theme = useTheme();
 
   const totalMinutes = recipe.prepMinutes + recipe.cookMinutes;
@@ -137,7 +150,21 @@ export default function RecipeCard({
             })}
           </Box>
 
-          <Typography variant="overline" color="text.secondary">
+          {availableItemNames && missingCount > 0 && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<ShoppingCartOutlinedIcon />}
+              onClick={async () =>
+                setShareState(await shareShoppingList(recipe, availableItemNames))
+              }
+              sx={{ mb: 2 }}
+            >
+              {SHARE_LABEL[shareState]}
+            </Button>
+          )}
+
+          <Typography variant="overline" color="text.secondary" component="p">
             Method
           </Typography>
           <Box component="ol" sx={{ pl: 3, mt: 0.5, mb: 0 }}>
@@ -158,6 +185,9 @@ export default function RecipeCard({
         >
           {expanded ? 'Hide' : 'Show'} recipe
         </Button>
+        <Button size="small" startIcon={<SoupKitchenOutlinedIcon />} onClick={() => setCooking(true)}>
+          Cook
+        </Button>
         <Box sx={{ flexGrow: 1 }} />
         {actions}
         {onDelete && (
@@ -166,6 +196,13 @@ export default function RecipeCard({
           </IconButton>
         )}
       </CardActions>
+
+      <CookMode
+        open={cooking}
+        recipe={recipe}
+        availableItemNames={availableItemNames}
+        onClose={() => setCooking(false)}
+      />
     </Card>
   );
 }

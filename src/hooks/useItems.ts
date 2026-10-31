@@ -13,7 +13,7 @@ export function useAllItems(): PantryItem[] | undefined {
 export function useUrgentCount(): number {
   const count = useLiveQuery(async () => {
     const fridgeItems = await db.items.where('location').equals('fridge').toArray();
-    return fridgeItems.filter((item) => isUrgent(item.expiresAt)).length;
+    return fridgeItems.filter((item) => item.quantity > 0 && isUrgent(item.expiresAt)).length;
   }, []);
   return count ?? 0;
 }
