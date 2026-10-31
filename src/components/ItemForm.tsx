@@ -91,10 +91,9 @@ export default function ItemForm({ location, existingItems, showExpiry = false }
           p: 2,
           mb: 2,
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
           flexWrap: 'wrap',
           gap: 2,
-          alignItems: { sm: 'center' },
+          alignItems: 'center',
         }}
       >
         <TextField
@@ -102,7 +101,7 @@ export default function ItemForm({ location, existingItems, showExpiry = false }
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-          sx={{ flex: '2 1 200px' }}
+          sx={{ flex: '2 1 200px', minWidth: 0 }}
         />
         <TextField
           label="Quantity"
@@ -110,13 +109,13 @@ export default function ItemForm({ location, existingItems, showExpiry = false }
           value={quantity}
           onChange={(e) => setQuantity(Math.max(0, Number(e.target.value)))}
           slotProps={{ htmlInput: { min: 0 } }}
-          sx={{ flex: '1 1 100px', minWidth: 100 }}
+          sx={{ flex: '1 1 100px', minWidth: { xs: 0, sm: 100 } }}
         />
         <Select
           value={unit}
           onChange={(e: SelectChangeEvent) => setUnit(e.target.value)}
           aria-label="Unit"
-          sx={{ flex: '1 1 100px', minWidth: 100 }}
+          sx={{ flex: '1 1 100px', minWidth: { xs: 0, sm: 100 } }}
         >
           {UNITS.map((u) => (
             <MenuItem key={u} value={u}>
@@ -131,10 +130,10 @@ export default function ItemForm({ location, existingItems, showExpiry = false }
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ flex: '1 1 160px', minWidth: 160 }}
+            sx={{ flex: '1 1 160px', minWidth: { xs: 0, sm: 160 } }}
           />
         )}
-        <Box sx={{ flex: '0 0 auto' }}>
+        <Box sx={{ flex: { xs: '1 1 100%', sm: '0 0 auto' } }}>
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} fullWidth>
             Add
           </Button>

@@ -59,7 +59,7 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
       fontFamily: fonts.body,
       h1: {
         fontFamily: fonts.body,
-        fontSize: 'clamp(1.35rem, 4.5vw, 2.75rem)',
+        fontSize: 'clamp(1.15rem, 4.5vw, 2.75rem)',
         fontWeight: 600,
         letterSpacing: isEstral ? '.12em' : '.01em',
         lineHeight: 1.15,
