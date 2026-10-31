@@ -139,7 +139,7 @@ function buildTheme(family: ThemeFamily, mode: ThemeMode): Theme {
       MuiListItem: {
         styleOverrides: {
           root: {
-            '&:hover': { backgroundColor: t.raised },
+            '@media (hover: hover)': { '&:hover': { backgroundColor: t.raised } },
           },
         },
       },

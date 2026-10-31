@@ -2,32 +2,50 @@ import { useState } from 'react';
 import {
   Box,
   Button,
+  ButtonBase,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
+  InputAdornment,
   List,
   ListItem,
+  ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
   Paper,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import KitchenIcon from '@mui/icons-material/Kitchen';
+import KitchenOutlinedIcon from '@mui/icons-material/KitchenOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import ConfirmDialog from './ConfirmDialog';
+import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
 import ExpiryChip from './ExpiryChip';
+import UndoSnackbar, { type UndoState } from './UndoSnackbar';
 import { db, type PantryItem } from '../db';
 import { fromDateInputValue, toDateInputValue } from '../utils/expiry';
+import { isOut } from '../utils/items';
 
-const rowButtonSx = { p: { xs: 1, sm: 0.5 } } as const;
+const TOUCH = { width: 44, height: 44 } as const;
+
+const STEP_BY_UNIT: Record<string, number> = { g: 50, ml: 50, kg: 0.5, l: 0.5 };
+
+function stepFor(unit: string): number {
+  return STEP_BY_UNIT[unit] ?? 1;
+}
+
+function roundQuantity(value: number): number {
+  return Math.max(0, Math.round(value * 1000) / 1000);
+}
 
 interface ItemListProps {
   items: PantryItem[];
@@ -37,15 +55,31 @@ interface ItemListProps {
 }
 
 export default function ItemList({ items, showExpiry = false, emptyTitle, emptyHint }: ItemListProps) {
-  const [pendingDelete, setPendingDelete] = useState<PantryItem | null>(null);
+  const [menu, setMenu] = useState<{ anchor: HTMLElement; item: PantryItem } | null>(null);
   const [editingExpiry, setEditingExpiry] = useState<PantryItem | null>(null);
   const [expiryDraft, setExpiryDraft] = useState('');
+  const [editingQuantity, setEditingQuantity] = useState<number | null>(null);
+  const [quantityDraft, setQuantityDraft] = useState('');
+  const [undo, setUndo] = useState<UndoState | null>(null);
 
   async function setQuantity(item: PantryItem, next: number) {
-    await db.items.update(item.id, { quantity: Math.max(0, next) });
+    await db.items.update(item.id, { quantity: roundQuantity(next) });
   }
 
-  async function toggleFavourite(item: PantryItem) {
+  function startQuantityEdit(item: PantryItem) {
+    setEditingQuantity(item.id);
+    setQuantityDraft(String(item.quantity));
+  }
+
+  async function commitQuantity(item: PantryItem) {
+    const parsed = Number(quantityDraft);
+    if (quantityDraft.trim() !== '' && Number.isFinite(parsed)) {
+      await setQuantity(item, parsed);
+    }
+    setEditingQuantity(null);
+  }
+
+  async function toggleStaple(item: PantryItem) {
     await db.items.update(item.id, { favourited: !item.favourited });
   }
 
@@ -55,10 +89,14 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
     });
   }
 
-  async function confirmDelete() {
-    if (!pendingDelete) return;
-    await db.items.delete(pendingDelete.id);
-    setPendingDelete(null);
+  async function remove(item: PantryItem) {
+    await db.items.delete(item.id);
+    setUndo({
+      message: `Removed ${item.name}`,
+      undo: async () => {
+        await db.items.put(item);
+      },
+    });
   }
 
   function openExpiryEditor(item: PantryItem) {
@@ -72,156 +110,205 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
     setEditingExpiry(null);
   }
 
-  if (items.length === 0) {
-    return (
-      <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h6" gutterBottom>
-          {emptyTitle}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {emptyHint}
-        </Typography>
-      </Paper>
-    );
+  function runFromMenu(action: (item: PantryItem) => void | Promise<void>) {
+    if (!menu) return;
+    const { item } = menu;
+    setMenu(null);
+    void action(item);
   }
+
+  const menuItem = menu?.item;
+  const dateWord = menuItem?.location === 'fridge' ? 'expiry' : 'best-before';
 
   return (
     <>
-      <Paper variant="outlined">
-        <List disablePadding>
-          {items.map((item, index) => (
-            <ListItem
-              key={item.id}
-              divider={index < items.length - 1}
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                columnGap: 1,
-                rowGap: 0.5,
-                py: 1.5,
-              }}
-            >
-              <ListItemText
-                primary={item.name}
-                sx={{
-                  flex: { xs: '1 1 auto', sm: '1 1 130px' },
-                  minWidth: 0,
-                  my: 0,
-                  order: { xs: 1, sm: 2 },
-                }}
-                slotProps={{ primary: { sx: { fontWeight: item.favourited ? 600 : 400 } } }}
-              />
-
-              {(showExpiry || item.expiresAt) && (
-                <ExpiryChip
-                  expiresAt={item.expiresAt}
-                  onClick={() => openExpiryEditor(item)}
-                  sx={{ order: { xs: 2, sm: 4 } }}
-                />
-              )}
-
-              <Box
-                aria-hidden
-                sx={{
-                  flexBasis: '100%',
-                  height: 0,
-                  order: 3,
-                  display: { xs: 'block', sm: 'none' },
-                }}
-              />
-
-              <IconButton
-                size="small"
-                onClick={() => toggleFavourite(item)}
-                aria-label={item.favourited ? `Unfavourite ${item.name}` : `Favourite ${item.name}`}
-                sx={{ ...rowButtonSx, order: { xs: 4, sm: 1 }, ml: { xs: 'auto', sm: 0 } }}
-              >
-                {item.favourited ? (
-                  <FavoriteIcon color="error" fontSize="small" />
-                ) : (
-                  <FavoriteBorderIcon fontSize="small" />
-                )}
-              </IconButton>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  order: { xs: 5, sm: 3 },
-                }}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => setQuantity(item, item.quantity - 1)}
-                  disabled={item.quantity <= 0}
-                  aria-label={`Decrease ${item.name}`}
-                  sx={rowButtonSx}
-                >
-                  <RemoveIcon fontSize="small" />
-                </IconButton>
-                <Typography
-                  variant="body2"
+      {items.length === 0 ? (
+        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h6" gutterBottom>
+            {emptyTitle}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {emptyHint}
+          </Typography>
+        </Paper>
+      ) : (
+        <Paper variant="outlined">
+          <List disablePadding>
+            {items.map((item, index) => {
+              const out = isOut(item);
+              const step = stepFor(item.unit);
+              const editing = editingQuantity === item.id;
+              return (
+                <ListItem
+                  key={item.id}
+                  divider={index < items.length - 1}
                   sx={{
-                    minWidth: { xs: 56, sm: 68 },
-                    textAlign: 'center',
-                    fontVariantNumeric: 'tabular-nums',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    columnGap: 1,
+                    py: 1,
+                    pr: 1,
                   }}
                 >
-                  {item.quantity} {item.unit}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => setQuantity(item, item.quantity + 1)}
-                  aria-label={`Increase ${item.name}`}
-                  sx={rowButtonSx}
-                >
-                  <AddIcon fontSize="small" />
-                </IconButton>
-              </Box>
+                  <Box sx={{ flex: 1, minWidth: 0, opacity: out ? 0.6 : 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {item.favourited && (
+                        <PushPinIcon
+                          color="primary"
+                          sx={{ fontSize: 16, flexShrink: 0 }}
+                          titleAccess="Staple"
+                        />
+                      )}
+                      <Typography
+                        sx={{
+                          fontWeight: item.favourited ? 600 : 400,
+                          overflowWrap: 'anywhere',
+                        }}
+                      >
+                        {item.name}
+                      </Typography>
+                    </Box>
+                  </Box>
 
-              <Tooltip title={item.location === 'pantry' ? 'Move to fridge' : 'Move to pantry'}>
-                <IconButton
-                  size="small"
-                  onClick={() => toggleLocation(item)}
-                  aria-label={
-                    item.location === 'pantry'
-                      ? `Move ${item.name} to fridge`
-                      : `Move ${item.name} to pantry`
-                  }
-                  sx={{ ...rowButtonSx, order: { xs: 6, sm: 5 } }}
-                >
-                  {item.location === 'pantry' ? (
-                    <KitchenIcon fontSize="small" />
-                  ) : (
-                    <Inventory2OutlinedIcon fontSize="small" />
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                    <IconButton
+                      onClick={() => setQuantity(item, item.quantity - step)}
+                      disabled={out}
+                      aria-label={`Use ${step} ${item.unit} of ${item.name}`}
+                      sx={TOUCH}
+                    >
+                      <RemoveIcon fontSize="small" />
+                    </IconButton>
+                    {editing ? (
+                      <TextField
+                        value={quantityDraft}
+                        onChange={(e) => setQuantityDraft(e.target.value)}
+                        onBlur={() => commitQuantity(item)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') void commitQuantity(item);
+                          if (e.key === 'Escape') setEditingQuantity(null);
+                        }}
+                        autoFocus
+                        size="small"
+                        type="number"
+                        slotProps={{
+                          htmlInput: {
+                            min: 0,
+                            step: 'any',
+                            inputMode: 'decimal',
+                            'aria-label': `Quantity of ${item.name}`,
+                            onFocus: (e: React.FocusEvent<HTMLInputElement>) => e.target.select(),
+                          },
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="end">{item.unit}</InputAdornment>
+                            ),
+                          },
+                        }}
+                        sx={{ width: 104 }}
+                      />
+                    ) : (
+                      <ButtonBase
+                        onClick={() => startQuantityEdit(item)}
+                        aria-label={`${item.quantity} ${item.unit} of ${item.name}. Change quantity`}
+                        sx={{
+                          minWidth: 64,
+                          minHeight: 44,
+                          px: 0.5,
+                          borderRadius: 1,
+                          typography: 'body2',
+                          fontVariantNumeric: 'tabular-nums',
+                          justifyContent: 'center',
+                          '&:hover': { backgroundColor: 'action.hover' },
+                        }}
+                      >
+                        {item.quantity} {item.unit}
+                      </ButtonBase>
+                    )}
+                    <IconButton
+                      onClick={() => setQuantity(item, item.quantity + step)}
+                      aria-label={`Add ${step} ${item.unit} of ${item.name}`}
+                      sx={TOUCH}
+                    >
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      onClick={(e) => setMenu({ anchor: e.currentTarget, item })}
+                      aria-label={`More for ${item.name}`}
+                      aria-haspopup="menu"
+                      sx={TOUCH}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Box>
+
+                  {(out || showExpiry || item.expiresAt) && (
+                    <Box sx={{ flexBasis: '100%', display: 'flex', gap: 0.5, pb: 0.5 }}>
+                      {out ? (
+                        <Chip size="small" label="Out" variant="outlined" sx={{ opacity: 0.8 }} />
+                      ) : (
+                        <ExpiryChip
+                          expiresAt={item.expiresAt}
+                          onClick={() => openExpiryEditor(item)}
+                        />
+                      )}
+                    </Box>
                   )}
-                </IconButton>
-              </Tooltip>
+                </ListItem>
+              );
+            })}
+          </List>
+        </Paper>
+      )}
 
-              <IconButton
-                size="small"
-                onClick={() => setPendingDelete(item)}
-                aria-label={`Remove ${item.name}`}
-                sx={{ ...rowButtonSx, order: { xs: 7, sm: 6 } }}
-              >
-                <DeleteOutlineIcon fontSize="small" />
-              </IconButton>
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
-
-      <ConfirmDialog
-        open={pendingDelete !== null}
-        title="Remove item"
-        message={pendingDelete ? `Remove ${pendingDelete.name} from your list?` : ''}
-        confirmLabel="Remove"
-        destructive
-        onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
-      />
+      <Menu
+        anchorEl={menu?.anchor ?? null}
+        open={menu !== null}
+        onClose={() => setMenu(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuItem onClick={() => runFromMenu(toggleStaple)} sx={{ minHeight: 44 }}>
+          <ListItemIcon>
+            {menuItem?.favourited ? (
+              <PushPinIcon fontSize="small" />
+            ) : (
+              <PushPinOutlinedIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          <ListItemText>{menuItem?.favourited ? 'Not a Staple' : 'Make it a Staple'}</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => runFromMenu(openExpiryEditor)} sx={{ minHeight: 44 }}>
+          <ListItemIcon>
+            <EditCalendarOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>
+            {menuItem?.expiresAt ? `Change ${dateWord} date` : `Add ${dateWord} date`}
+          </ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => runFromMenu(toggleLocation)} sx={{ minHeight: 44 }}>
+          <ListItemIcon>
+            {menuItem?.location === 'pantry' ? (
+              <KitchenOutlinedIcon fontSize="small" />
+            ) : (
+              <Inventory2OutlinedIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          <ListItemText>
+            {menuItem?.location === 'pantry' ? 'Move to Fridge' : 'Move to Pantry'}
+          </ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => runFromMenu(remove)}
+          sx={{ minHeight: 44, color: 'error.main' }}
+        >
+          <ListItemIcon sx={{ color: 'inherit' }}>
+            <DeleteOutlineIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Remove</ListItemText>
+        </MenuItem>
+      </Menu>
 
       <Dialog
         open={editingExpiry !== null}
@@ -229,11 +316,15 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{editingExpiry ? `Expiry for ${editingExpiry.name}` : 'Expiry'}</DialogTitle>
+        <DialogTitle>
+          {editingExpiry
+            ? `${editingExpiry.location === 'fridge' ? 'Expiry' : 'Best before'} for ${editingExpiry.name}`
+            : 'Date'}
+        </DialogTitle>
         <DialogContent>
           <TextField
             type="date"
-            label="Expires"
+            label={editingExpiry?.location === 'fridge' ? 'Expires' : 'Best before'}
             value={expiryDraft}
             onChange={(e) => setExpiryDraft(e.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
@@ -249,6 +340,8 @@ export default function ItemList({ items, showExpiry = false, emptyTitle, emptyH
           </Button>
         </DialogActions>
       </Dialog>
+
+      <UndoSnackbar state={undo} onClose={() => setUndo(null)} />
     </>
   );
 }

@@ -1,5 +1,8 @@
+import { useRef, useState, type ChangeEvent } from 'react';
 import {
+  Alert,
   Box,
+  Button,
   Card,
   CardActionArea,
   CardContent,
@@ -13,6 +16,9 @@ import {
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
+import { exportBackup, importBackup } from '../services/backup';
 import { useLiveQuery } from 'dexie-react-hooks';
 import PageHeading from '../components/PageHeading';
 import { useThemeController } from '../theme/context';
@@ -21,8 +27,31 @@ import type { ThemeMode } from '../theme/tokens';
 import { db } from '../db';
 import { isGeneratorConfigured } from '../services/recipeApi';
 
+function plural(count: number, word: string): string {
+  return `${count} ${word}${count === 1 ? '' : 's'}`;
+}
+
 export default function SettingsPage() {
   const { family, mode, setFamily, setMode } = useThemeController();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [importMessage, setImportMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function handleImport(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const result = await importBackup(file);
+      const added = `Added ${plural(result.addedItems, 'item')} and ${plural(result.addedRecipes, 'recipe')}.`;
+      const skipped = result.skipped > 0 ? ` Skipped ${result.skipped} already here.` : '';
+      setImportMessage({ ok: true, text: added + skipped });
+    } catch (caught) {
+      setImportMessage({
+        ok: false,
+        text: caught instanceof Error ? caught.message : "Couldn't read that backup.",
+      });
+    }
+  }
 
   const counts = useLiveQuery(async () => {
     const [pantry, fridge, recipes] = await Promise.all([
@@ -125,9 +154,43 @@ export default function SettingsPage() {
         </Box>
         <Divider sx={{ my: 1.5 }} />
         <Typography variant="body2" color="text.secondary">
-          Everything lives in this browser's IndexedDB. There's no account and no sync — clearing
-          site data clears the app.
+          Everything lives in this browser. There's no account and no sync, so clearing site data
+          clears the app. Save a backup file to keep a copy or move to another device.
         </Typography>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1.5 }}>
+          <Button
+            variant="outlined"
+            startIcon={<FileDownloadOutlinedIcon />}
+            onClick={() => void exportBackup()}
+            sx={{ minHeight: 44 }}
+          >
+            Save backup
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<FileUploadOutlinedIcon />}
+            onClick={() => fileInput.current?.click()}
+            sx={{ minHeight: 44 }}
+          >
+            Restore from backup
+          </Button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={handleImport}
+          />
+        </Box>
+        {importMessage && (
+          <Alert
+            severity={importMessage.ok ? 'success' : 'error'}
+            onClose={() => setImportMessage(null)}
+            sx={{ mt: 1.5 }}
+          >
+            {importMessage.text}
+          </Alert>
+        )}
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Recipe generator:{' '}
           <Box component="span" sx={{ color: isGeneratorConfigured() ? 'success.main' : 'warning.main' }}>

@@ -5,15 +5,16 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import PageHeading from '../components/PageHeading';
 import RecipeCard from '../components/RecipeCard';
-import ConfirmDialog from '../components/ConfirmDialog';
+import UndoSnackbar, { type UndoState } from '../components/UndoSnackbar';
 import { db, type SavedRecipe } from '../db';
 import { useAllItems } from '../hooks/useItems';
+import { isOut } from '../utils/items';
 
 export default function RecipesPage() {
   const recipes = useLiveQuery(() => db.recipes.toArray(), []);
   const items = useAllItems();
   const [filter, setFilter] = useState<'all' | 'favourites'>('all');
-  const [pendingDelete, setPendingDelete] = useState<SavedRecipe | null>(null);
+  const [undo, setUndo] = useState<UndoState | null>(null);
 
   if (!recipes) {
     return (
@@ -23,7 +24,7 @@ export default function RecipesPage() {
     );
   }
 
-  const availableItemNames = (items ?? []).map((item) => item.name);
+  const availableItemNames = (items ?? []).filter((item) => !isOut(item)).map((item) => item.name);
 
   const visible = recipes
     .filter((recipe) => filter === 'all' || recipe.favourited)
@@ -36,10 +37,14 @@ export default function RecipesPage() {
     await db.recipes.update(recipe.id, { favourited: !recipe.favourited });
   }
 
-  async function confirmDelete() {
-    if (!pendingDelete) return;
-    await db.recipes.delete(pendingDelete.id);
-    setPendingDelete(null);
+  async function remove(recipe: SavedRecipe) {
+    await db.recipes.delete(recipe.id);
+    setUndo({
+      message: `Deleted “${recipe.title}”`,
+      undo: async () => {
+        await db.recipes.put(recipe);
+      },
+    });
   }
 
   return (
@@ -84,27 +89,28 @@ export default function RecipesPage() {
           )}
         </Paper>
       ) : (
-        visible.map((recipe) => (
-          <RecipeCard
-            key={recipe.id}
-            recipe={recipe}
-            favourited={recipe.favourited}
-            availableItemNames={availableItemNames}
-            onToggleFavourite={() => toggleFavourite(recipe)}
-            onDelete={() => setPendingDelete(recipe)}
-          />
-        ))
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'repeat(2, minmax(0, 1fr))' },
+            columnGap: 2,
+            alignItems: 'start',
+          }}
+        >
+          {visible.map((recipe) => (
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              favourited={recipe.favourited}
+              availableItemNames={availableItemNames}
+              onToggleFavourite={() => toggleFavourite(recipe)}
+              onDelete={() => remove(recipe)}
+            />
+          ))}
+        </Box>
       )}
 
-      <ConfirmDialog
-        open={pendingDelete !== null}
-        title="Delete recipe"
-        message={pendingDelete ? `Delete "${pendingDelete.title}" for good?` : ''}
-        confirmLabel="Delete"
-        destructive
-        onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
-      />
+      <UndoSnackbar state={undo} onClose={() => setUndo(null)} />
     </>
   );
 }
